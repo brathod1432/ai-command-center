@@ -25,5 +25,7 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Production start fails closed without a session secret (see docs/security-model.md §9).
+    env: { SESSION_SECRET: process.env.SESSION_SECRET ?? "e2e-test-secret-please-override-in-prod" },
   },
 });

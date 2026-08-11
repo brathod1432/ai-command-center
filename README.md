@@ -50,8 +50,18 @@ cp .env.example .env.local
 
 # 3. Start the dev server
 npm run dev
-# open http://localhost:3000  →  landing page
-# open http://localhost:3000/dashboard  →  Executive Command Center
+# open http://localhost:3000              →  landing page
+# open http://localhost:3000/login        →  demo sign-in (choose a role)
+# after sign-in you land on /dashboard    →  Executive Command Center
+```
+
+**Demo sign-in:** the login page lets you pick a **role** (owner, admin, executive, manager, analyst, viewer, auditor) so you can see RBAC and the governance/approval flow behave differently. Try approving an action as an `executive`, then view it in **Audit Trail**; sign in as a `viewer` to see approvals disabled and audit access denied.
+
+**Production start** fails closed without a session secret (a deliberate security control):
+
+```bash
+# SESSION_SECRET is REQUIRED for `next start` (production)
+SESSION_SECRET="<a-long-random-value>" npm run build && SESSION_SECRET="<same-value>" npm run start
 ```
 
 ### Scripts
@@ -124,14 +134,20 @@ Helm's AI may **recommend, analyze, summarize, explain, predict, and draft**. It
 
 ---
 
-## Status
+## What's included
 
-This is a **reference implementation / foundation**. It ships:
-- A working landing page and Executive Command Center backed by deterministic mock data.
-- The core domain layer (RBAC, governance invariants, agent registry, typed contracts).
-- Security headers, a health endpoint, and a passing test suite (unit + component + a11y + e2e smoke).
+A genuinely usable, governed command center:
 
-Additional domain pages (agents workspaces, workflows, integrations UI, audit, etc.) are fully **specified in `docs/`** and are the roadmap's next increments (see [`docs/future-roadmap.md`](docs/future-roadmap.md)).
+- **Authentication + RBAC** — demo sign-in with role selection; signed HttpOnly session; `middleware` route protection; server-enforced authorization (defense in depth).
+- **Executive Command Center** — company health, KPIs, agent insights, and a governance queue.
+- **10 agent workspaces** — `/agents` and `/agents/[id]` with mission, insights, and pending approvals.
+- **Real governance flow** — approve/decline consequential actions via a Zod-validated, RBAC-checked, CSRF-protected, rate-limited API that writes an **immutable audit record**; view it in **Audit Trail** and export it.
+- **Function pages** — Sales, Engineering, Finance, Support, Customer Success, Marketing, Operations, Product.
+- **Workflows, Integrations (mock providers), Knowledge (search), Reports (export), Settings, Showcase (industry switcher).**
+- **App shell** — sidebar navigation, command palette (⌘K), dark mode, responsive/mobile, toasts, empty/loading/error states.
+- **Security** — CSP + hardened headers, fail-closed session secret, structured logging, health endpoint.
+
+See [`docs/improvements.md`](docs/improvements.md) for the full user/client/security analysis and what's next (e.g., action follow-through, scheduled digests, SSO/MFA).
 
 ---
 

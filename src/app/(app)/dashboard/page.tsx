@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { HeartPulse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KpiCard } from "@/components/patterns/kpi-card";
 import { InsightCard } from "@/components/patterns/insight-card";
 import { ActionQueue } from "@/components/patterns/action-queue";
-import { ACTIONS, COMPANY_HEALTH, DEMO_USER, INSIGHTS, KPIS, TENANT } from "@/lib/data/mock";
+import { PageHeader } from "@/components/patterns/page-header";
+import { getSession } from "@/lib/auth/current-user";
+import { store } from "@/lib/data/store";
+import { COMPANY_HEALTH, INSIGHTS, KPIS } from "@/lib/data/mock";
 
 export const metadata: Metadata = {
   title: "Executive Command Center",
@@ -21,24 +23,21 @@ const HEALTH_VARIANT = {
   critical: "destructive",
 } as const;
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await getSession();
+  const role = session?.role ?? "viewer";
+  const tenantId = session?.tenantId ?? "acme";
+  const actions = store.listActions(tenantId);
   const health = COMPANY_HEALTH;
 
   return (
-    <main id="main-content" className="mx-auto max-w-7xl px-6 py-8">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            {TENANT.name} · Welcome back, {DEMO_USER.name}
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">Executive Command Center</h1>
-        </div>
-        <Link href="/" className="text-sm text-primary underline-offset-4 hover:underline">
-          ← Back to overview
-        </Link>
-      </header>
+    <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+      <PageHeader
+        title="Executive Command Center"
+        description={`Welcome back, ${session?.name ?? "there"}. Here is what needs your attention today.`}
+      />
 
-      <section className="mt-6" aria-labelledby="health-heading">
+      <section aria-labelledby="health-heading">
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
@@ -71,10 +70,7 @@ export default function DashboardPage() {
         </Card>
       </section>
 
-      <section className="mt-6" aria-labelledby="kpi-heading">
-        <h2 id="kpi-heading" className="sr-only">
-          Key performance indicators
-        </h2>
+      <section aria-label="Key performance indicators">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {KPIS.map((kpi) => (
             <KpiCard key={kpi.id} kpi={kpi} />
@@ -82,7 +78,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2" aria-labelledby="insights-heading">
           <h2 id="insights-heading" className="mb-3 text-lg font-semibold">
             Agent insights
@@ -97,7 +93,7 @@ export default function DashboardPage() {
           <h2 id="actions-heading" className="mb-3 text-lg font-semibold">
             Governance queue
           </h2>
-          <ActionQueue actions={ACTIONS} role={DEMO_USER.role} />
+          <ActionQueue initialActions={actions} role={role} />
         </section>
       </div>
     </main>

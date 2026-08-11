@@ -50,7 +50,7 @@ export default function HomePage() {
             </Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link href="/dashboard">View a live demo</Link>
+            <Link href="/showcase">See it by industry</Link>
           </Button>
         </div>
       </section>
