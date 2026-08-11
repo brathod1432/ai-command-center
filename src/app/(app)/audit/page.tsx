@@ -31,15 +31,17 @@ export default async function AuditPage() {
     );
   }
 
-  const records = store.listAudit(session?.tenantId ?? "acme");
+  const tenantId = session?.tenantId ?? "acme";
+  const records = store.listAudit(tenantId);
+  const integrity = store.verifyAudit(tenantId);
 
   return (
     <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-6 py-8">
       <PageHeader
         title="Audit Trail"
-        description="Immutable, append-only record of every decision and security-relevant event. Filter and export for compliance."
+        description="Immutable, append-only, hash-chained record of every decision and security-relevant event. Filter, verify integrity, and export for compliance."
       />
-      <AuditTable initialRecords={records} />
+      <AuditTable initialRecords={records} integrity={integrity} />
     </main>
   );
 }

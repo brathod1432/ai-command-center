@@ -6,6 +6,7 @@ import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "@/components/shell/command-palette";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { NotificationBell } from "@/components/shell/notification-bell";
 import { useSession } from "@/components/shell/session-context";
 import { roleLabel } from "@/lib/rbac";
 import { toast } from "@/components/ui/toast";
@@ -37,6 +38,7 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
 
       <div className="ml-auto flex items-center gap-2">
         <CommandPalette />
+        <NotificationBell />
         <ThemeToggle />
         <div className="hidden items-center gap-2 border-l pl-3 sm:flex">
           <div className="text-right leading-tight">

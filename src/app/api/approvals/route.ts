@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth/current-user";
 import { requirePermission } from "@/lib/auth/authorize";
 import { ApprovalError } from "@/lib/governance";
 import { rateLimit } from "@/lib/security/rate-limit";
-import { assertSameOrigin, clientId, correlationId, toErrorResponse } from "@/lib/security/request";
+import { assertSameOrigin, clientId, correlationId, jsonSecure, rateHeaders, toErrorResponse } from "@/lib/security/request";
 import { store } from "@/lib/data/store";
 
 /**
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (!rl.ok) {
       return NextResponse.json(
         { error: "Too many requests", correlationId: cid },
-        { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+        { status: 429, headers: rateHeaders(0, rl.retryAfterSeconds) },
       );
     }
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         actorRole: session.role,
         reason: parsed.data.reason,
       });
-      return NextResponse.json({ action, audit });
+      return jsonSecure({ action, audit }, { headers: rateHeaders(rl.remaining) });
     } catch (err) {
       if (err instanceof ApprovalError) {
         return NextResponse.json({ error: err.message, correlationId: cid }, { status: 400 });

@@ -7,6 +7,8 @@ import { Search } from "lucide-react";
 import { ALL_NAV_ITEMS } from "@/components/shell/nav";
 import { useSession } from "@/components/shell/session-context";
 import { can } from "@/lib/rbac";
+import { AGENTS } from "@/lib/agents/registry";
+import { KNOWLEDGE_DOCS } from "@/lib/data/catalog";
 import { Button } from "@/components/ui/button";
 
 /** ⌘K / Ctrl+K command palette for fast navigation. */
@@ -65,7 +67,7 @@ export function CommandPalette() {
             {items.map((item) => (
               <Command.Item
                 key={item.href}
-                value={item.label}
+                value={`nav ${item.label}`}
                 onSelect={() => go(item.href)}
                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
               >
@@ -74,6 +76,36 @@ export function CommandPalette() {
               </Command.Item>
             ))}
           </Command.Group>
+
+          {can(role, "agent:read") ? (
+            <Command.Group heading="Agents" className="text-xs text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+              {AGENTS.map((a) => (
+                <Command.Item
+                  key={a.id}
+                  value={`agent ${a.name} ${a.domain}`}
+                  onSelect={() => go(`/agents/${a.id}`)}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                >
+                  {a.name}
+                </Command.Item>
+              ))}
+            </Command.Group>
+          ) : null}
+
+          {can(role, "knowledge:read") ? (
+            <Command.Group heading="Knowledge" className="text-xs text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+              {KNOWLEDGE_DOCS.map((d) => (
+                <Command.Item
+                  key={d.id}
+                  value={`doc ${d.title} ${d.tags.join(" ")}`}
+                  onSelect={() => go("/knowledge")}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                >
+                  {d.title}
+                </Command.Item>
+              ))}
+            </Command.Group>
+          ) : null}
         </Command.List>
       </Command.Dialog>
     </>

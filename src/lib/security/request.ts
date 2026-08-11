@@ -38,6 +38,24 @@ export function correlationId(): string {
   return `req_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
 }
 
+/**
+ * JSON response for authenticated endpoints. Marks responses `no-store` so
+ * sensitive data is never cached by browsers/proxies. See docs/improvements-v2.md §4 (S3).
+ */
+export function jsonSecure(body: unknown, init: { status?: number; headers?: Record<string, string> } = {}): NextResponse {
+  return NextResponse.json(body, {
+    status: init.status ?? 200,
+    headers: { "Cache-Control": "no-store", ...(init.headers ?? {}) },
+  });
+}
+
+/** Standard rate-limit response headers. */
+export function rateHeaders(remaining: number, retryAfterSeconds = 0): Record<string, string> {
+  const h: Record<string, string> = { "X-RateLimit-Remaining": String(Math.max(0, remaining)) };
+  if (retryAfterSeconds > 0) h["Retry-After"] = String(retryAfterSeconds);
+  return h;
+}
+
 /** Map thrown errors to safe JSON responses (no stack traces/secrets leaked). */
 export function toErrorResponse(err: unknown, cid: string): NextResponse {
   if (err instanceof AuthzError) {

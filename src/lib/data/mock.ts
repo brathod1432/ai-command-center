@@ -28,6 +28,18 @@ export const DEMO_USER: User = {
   title: "Founder & CEO",
 };
 
+/** Illustrative team roster for the admin Team view. */
+export const DEMO_TEAM: User[] = [
+  { id: "u_owner", tenantId: TENANT.id, name: "Jordan Avery", email: "jordan@example.com", role: "owner", title: "Founder & CEO" },
+  { id: "u_admin", tenantId: TENANT.id, name: "Riley Chen", email: "riley@example.com", role: "admin", title: "Head of Operations" },
+  { id: "u_exec", tenantId: TENANT.id, name: "Sam Okafor", email: "sam@example.com", role: "executive", title: "COO" },
+  { id: "u_mgr_eng", tenantId: TENANT.id, name: "Priya Nair", email: "priya@example.com", role: "manager", title: "Engineering Manager" },
+  { id: "u_mgr_sales", tenantId: TENANT.id, name: "Diego Alvarez", email: "diego@example.com", role: "manager", title: "Sales Director" },
+  { id: "u_analyst", tenantId: TENANT.id, name: "Mia Rossi", email: "mia@example.com", role: "analyst", title: "Business Analyst" },
+  { id: "u_viewer", tenantId: TENANT.id, name: "Tom Becker", email: "tom@example.com", role: "viewer", title: "Board Observer" },
+  { id: "u_auditor", tenantId: TENANT.id, name: "Grace Kim", email: "grace@example.com", role: "auditor", title: "Compliance Auditor" },
+];
+
 export const COMPANY_HEALTH: CompanyHealth = {
   score: 78,
   label: "healthy",

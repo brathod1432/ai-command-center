@@ -15,6 +15,7 @@ import {
   Settings2,
   Sparkles,
   TrendingUp,
+  Users,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -66,6 +67,7 @@ export const NAV_SECTIONS: NavSection[] = [
     heading: "Governance",
     items: [
       { href: "/audit", label: "Audit Trail", icon: ScrollText, permission: "audit:read" },
+      { href: "/team", label: "Team", icon: Users, permission: "user:read" },
       { href: "/settings", label: "Settings", icon: Settings, permission: "dashboard:read" },
       { href: "/showcase", label: "Showcase", icon: Sparkles },
     ],

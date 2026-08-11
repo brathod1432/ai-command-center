@@ -3,9 +3,10 @@ import { HeartPulse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KpiCard } from "@/components/patterns/kpi-card";
-import { InsightCard } from "@/components/patterns/insight-card";
+import { InsightsPanel } from "@/components/patterns/insights-panel";
 import { ActionQueue } from "@/components/patterns/action-queue";
 import { PageHeader } from "@/components/patterns/page-header";
+import { TrendChart } from "@/components/charts/trend-chart";
 import { getSession } from "@/lib/auth/current-user";
 import { store } from "@/lib/data/store";
 import { COMPANY_HEALTH, INSIGHTS, KPIS } from "@/lib/data/mock";
@@ -29,6 +30,10 @@ export default async function DashboardPage() {
   const tenantId = session?.tenantId ?? "acme";
   const actions = store.listActions(tenantId);
   const health = COMPANY_HEALTH;
+
+  const mrrTrend = KPIS.find((k) => k.id === "mrr")?.trend ?? [];
+  const riskTrend = KPIS.find((k) => k.id === "churn_risk")?.trend ?? [];
+  const chartData = mrrTrend.map((v, i) => ({ name: `W${i + 1}`, mrr: v, risk: riskTrend[i] ?? 0 }));
 
   return (
     <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-6 py-8">
@@ -78,16 +83,32 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <section aria-labelledby="trend-heading">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle id="trend-heading" className="text-base">
+              Revenue vs. ARR-at-risk (8 weeks)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TrendChart
+              data={chartData}
+              ariaLabel="Monthly recurring revenue versus ARR at churn risk over the last 8 weeks, in thousands of dollars"
+              series={[
+                { key: "mrr", label: "MRR ($k)", color: "#6366f1" },
+                { key: "risk", label: "ARR at risk ($k)", color: "#ef4444" },
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2" aria-labelledby="insights-heading">
           <h2 id="insights-heading" className="mb-3 text-lg font-semibold">
             Agent insights
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {INSIGHTS.map((insight) => (
-              <InsightCard key={insight.id} insight={insight} />
-            ))}
-          </div>
+          <InsightsPanel insights={INSIGHTS} />
         </section>
         <section aria-labelledby="actions-heading">
           <h2 id="actions-heading" className="mb-3 text-lg font-semibold">

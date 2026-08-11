@@ -141,13 +141,17 @@ A genuinely usable, governed command center:
 - **Authentication + RBAC** — demo sign-in with role selection; signed HttpOnly session; `middleware` route protection; server-enforced authorization (defense in depth).
 - **Executive Command Center** — company health, KPIs, agent insights, and a governance queue.
 - **10 agent workspaces** — `/agents` and `/agents/[id]` with mission, insights, and pending approvals.
-- **Real governance flow** — approve/decline consequential actions via a Zod-validated, RBAC-checked, CSRF-protected, rate-limited API that writes an **immutable audit record**; view it in **Audit Trail** and export it.
+- **Real governance flow** — approve/decline consequential actions via a Zod-validated, RBAC-checked, CSRF-protected, rate-limited API that writes an **immutable, hash-chained audit record**; view it in **Audit Trail** (with an **integrity-verified** badge) and export it.
+- **Action follow-through** — after approval, **assign an owner + due date, comment, and mark complete** — turning a recommendation into tracked work.
+- **Activity feed** — a topbar notification bell showing recent decisions/events.
+- **Filtering & charts** — filter insights by severity/domain; real Recharts trend charts on the dashboard and function pages.
 - **Function pages** — Sales, Engineering, Finance, Support, Customer Success, Marketing, Operations, Product.
+- **Team & permissions** (admin) — member roster + role→permission matrix for access reviews.
 - **Workflows, Integrations (mock providers), Knowledge (search), Reports (export), Settings, Showcase (industry switcher).**
-- **App shell** — sidebar navigation, command palette (⌘K), dark mode, responsive/mobile, toasts, empty/loading/error states.
-- **Security** — CSP + hardened headers, fail-closed session secret, structured logging, health endpoint.
+- **App shell** — sidebar navigation, command palette (⌘K, searches nav/agents/docs), dark mode, responsive/mobile, toasts, empty/loading/error states.
+- **Security** — auth + session, middleware + **server-side page-level RBAC**, CSP + hardened headers, `no-store` on authed APIs, rate-limit headers, tamper-evident audit, fail-closed session secret, structured logging, health endpoint.
 
-See [`docs/improvements.md`](docs/improvements.md) for the full user/client/security analysis and what's next (e.g., action follow-through, scheduled digests, SSO/MFA).
+See [`docs/improvements.md`](docs/improvements.md) and [`docs/improvements-v2.md`](docs/improvements-v2.md) for the full user/client/security analysis and what's next (e.g., scheduled digests, saved views, SSO/MFA).
 
 ---
 

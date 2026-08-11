@@ -170,15 +170,44 @@ export const ProposedActionSchema = z.object({
   suggestedOwnerRole: RoleSchema,
   status: ActionStatusSchema.default("proposed"),
   createdAt: z.string(),
+  // Lifecycle (post-approval follow-through).
+  owner: z.string().optional(),
+  dueDate: z.string().optional(),
+  completedAt: z.string().optional(),
 });
 export type ProposedAction = z.infer<typeof ProposedActionSchema>;
+
+/** A comment on an action (collaboration + audit context). */
+export const ActionCommentSchema = z.object({
+  id: z.string(),
+  tenantId: z.string(),
+  actionId: z.string(),
+  authorId: z.string(),
+  authorRole: RoleSchema,
+  body: z.string().min(1).max(2000),
+  createdAt: z.string(),
+});
+export type ActionComment = z.infer<typeof ActionCommentSchema>;
+
+/** Discriminated update operations for an action (validated at the API boundary). */
+export const ActionUpdateInputSchema = z.discriminatedUnion("op", [
+  z.object({
+    op: z.literal("assign"),
+    actionId: z.string().min(1).max(64),
+    owner: z.string().min(1).max(120),
+    dueDate: z.string().max(40).optional(),
+  }),
+  z.object({ op: z.literal("complete"), actionId: z.string().min(1).max(64) }),
+  z.object({ op: z.literal("comment"), actionId: z.string().min(1).max(64), body: z.string().min(1).max(2000) }),
+]);
+export type ActionUpdateInput = z.infer<typeof ActionUpdateInputSchema>;
 
 export const ApprovalDecisionSchema = z.enum(["approved", "declined", "changes_requested"]);
 export type ApprovalDecision = z.infer<typeof ApprovalDecisionSchema>;
 
 // Input schema for an approval decision (validated at the API boundary).
 export const ApprovalInputSchema = z.object({
-  actionId: z.string().min(1),
+  actionId: z.string().min(1).max(64),
   decision: ApprovalDecisionSchema,
   reason: z.string().max(2000).optional(),
 });
@@ -197,6 +226,9 @@ export const AuditRecordSchema = z.object({
   reason: z.string().optional(),
   insightId: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
+  // Tamper-evidence: SHA-256 chain. See docs/improvements-v2.md §4 (S1).
+  prevHash: z.string().optional(),
+  hash: z.string().optional(),
 });
 export type AuditRecord = z.infer<typeof AuditRecordSchema>;
 

@@ -3,11 +3,18 @@ import { CheckCircle2, CircleDot } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/patterns/page-header";
+import { Forbidden } from "@/components/patterns/forbidden";
+import { getSession } from "@/lib/auth/current-user";
+import { can } from "@/lib/rbac";
 import { WORKFLOWS } from "@/lib/data/catalog";
 
 export const metadata: Metadata = { title: "Workflows" };
 
-export default function WorkflowsPage() {
+export default async function WorkflowsPage() {
+  const session = await getSession();
+  if (!can(session?.role ?? "viewer", "workflow:read")) {
+    return <Forbidden title="Workflows" />;
+  }
   return (
     <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-6 py-8">
       <PageHeader

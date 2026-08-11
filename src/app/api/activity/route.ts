@@ -3,12 +3,15 @@ import { requirePermission } from "@/lib/auth/authorize";
 import { correlationId, jsonSecure, toErrorResponse } from "@/lib/security/request";
 import { store } from "@/lib/data/store";
 
-/** List proposed actions for the caller's tenant. RBAC: insight:read. */
+/**
+ * Recent activity feed (redacted — no sensitive reasons). Available to anyone
+ * who can read insights, powering the notification bell. RBAC: insight:read.
+ */
 export async function GET() {
   const cid = correlationId();
   try {
     const session = requirePermission(await getSession(), "insight:read");
-    return jsonSecure({ actions: store.listActions(session.tenantId) });
+    return jsonSecure({ items: store.recentActivity(session.tenantId) });
   } catch (err) {
     return toErrorResponse(err, cid);
   }

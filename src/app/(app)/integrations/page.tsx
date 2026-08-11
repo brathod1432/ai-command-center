@@ -3,6 +3,9 @@ import { Plug } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { PageHeader } from "@/components/patterns/page-header";
+import { Forbidden } from "@/components/patterns/forbidden";
+import { getSession } from "@/lib/auth/current-user";
+import { can } from "@/lib/rbac";
 import { INTEGRATIONS } from "@/lib/data/catalog";
 import type { HealthStatus } from "@/lib/types/integrations";
 import { timeAgo } from "@/lib/utils";
@@ -16,7 +19,11 @@ const STATUS: Record<HealthStatus, { label: string; variant: BadgeProps["variant
   disconnected: { label: "Disconnected", variant: "secondary" },
 };
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage() {
+  const session = await getSession();
+  if (!can(session?.role ?? "viewer", "integration:read")) {
+    return <Forbidden title="Integrations" />;
+  }
   return (
     <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-6 py-8">
       <PageHeader

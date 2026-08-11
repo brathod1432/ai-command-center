@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, ShieldCheck, ShieldX } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,13 @@ const OUTCOME_VARIANT: Record<AuditRecord["outcome"], BadgeProps["variant"]> = {
   info: "secondary",
 };
 
-export function AuditTable({ initialRecords }: { initialRecords: AuditRecord[] }) {
+export function AuditTable({
+  initialRecords,
+  integrity,
+}: {
+  initialRecords: AuditRecord[];
+  integrity: { ok: boolean; count: number; brokenAt?: string };
+}) {
   const { data: records = [] } = useAudit(initialRecords);
   const [query, setQuery] = useState("");
 
@@ -49,6 +55,17 @@ export function AuditTable({ initialRecords }: { initialRecords: AuditRecord[] }
             className="max-w-xs"
             aria-label="Filter audit records"
           />
+          {integrity.ok ? (
+            <Badge variant="success" className="gap-1">
+              <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+              Integrity verified ({integrity.count})
+            </Badge>
+          ) : (
+            <Badge variant="destructive" className="gap-1">
+              <ShieldX className="h-3 w-3" aria-hidden="true" />
+              Chain broken{integrity.brokenAt ? ` at ${integrity.brokenAt}` : ""}
+            </Badge>
+          )}
           <Button variant="outline" size="sm" onClick={exportJson} className="ml-auto">
             <Download className="h-4 w-4" aria-hidden="true" />
             Export JSON

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { KpiCard } from "@/components/patterns/kpi-card";
 import { InsightCard } from "@/components/patterns/insight-card";
 import { PageHeader } from "@/components/patterns/page-header";
+import { TrendChart } from "@/components/charts/trend-chart";
 import { KPIS, INSIGHTS } from "@/lib/data/mock";
 import { AGENTS } from "@/lib/agents/registry";
 import type { Domain } from "@/lib/types";
@@ -13,6 +14,8 @@ export function DomainView({ domain, title, description }: { domain: Domain; tit
   const kpis = KPIS.filter((k) => k.domain === domain);
   const insights = INSIGHTS.filter((i) => i.domain === domain);
   const agent = AGENTS.find((a) => a.domain === domain);
+  const chartKpi = kpis.find((k) => k.trend.length > 1);
+  const chartData = chartKpi ? chartKpi.trend.map((v, i) => ({ name: `W${i + 1}`, value: v })) : [];
 
   return (
     <main id="main-content" className="mx-auto max-w-7xl space-y-6 px-6 py-8">
@@ -48,6 +51,21 @@ export function DomainView({ domain, title, description }: { domain: Domain; tit
             ))}
           </div>
         </section>
+      ) : null}
+
+      {chartKpi ? (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{chartKpi.label} — 8-week trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TrendChart
+              data={chartData}
+              ariaLabel={`${chartKpi.label} trend over the last 8 weeks`}
+              series={[{ key: "value", label: chartKpi.label, color: "#6366f1" }]}
+            />
+          </CardContent>
+        </Card>
       ) : null}
 
       <section aria-label="Insights">
