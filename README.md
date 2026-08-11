@@ -20,6 +20,78 @@ Helm does not replace people. It assists them. **AI recommends; humans decide.**
 
 ---
 
+## Screenshots
+
+> All screenshots are generated from the running app (see `tests/e2e/screenshots.spec.ts`). Light & dark themes, desktop & mobile, and multiple user roles are shown.
+
+### Landing & overview
+
+![Landing page](docs/screenshots/01-landing.png)
+
+### Executive Command Center
+
+The centerpiece: company health, KPIs, an 8-week trend chart, cited agent insights, and the governance approval queue.
+
+| Light | Dark |
+|---|---|
+| ![Dashboard (light)](docs/screenshots/10-dashboard.png) | ![Dashboard (dark)](docs/screenshots/11-dashboard-dark.png) |
+
+### Daily workflow (operator's view)
+
+| My Work inbox | Agent workspace |
+|---|---|
+| ![My Work](docs/screenshots/12-my-work.png) | ![Agent workspace](docs/screenshots/14-agent-workspace.png) |
+
+| Follow-through (assign / due date / complete) | Command palette (⌘K) |
+|---|---|
+| ![Follow-through](docs/screenshots/26-manager-followthrough.png) | ![Command palette](docs/screenshots/24-command-palette.png) |
+
+### Governance & compliance
+
+| Audit trail (tamper-evident, exportable) | Operational status |
+|---|---|
+| ![Audit trail](docs/screenshots/20-audit.png) | ![Status](docs/screenshots/21-status.png) |
+
+| Team & permissions (access reviews) | Reports (board-ready, exportable) |
+|---|---|
+| ![Team](docs/screenshots/22-team.png) | ![Reports](docs/screenshots/19-reports.png) |
+
+### Platform surfaces
+
+| Agents | Finance (with trend chart) |
+|---|---|
+| ![Agents](docs/screenshots/13-agents.png) | ![Finance](docs/screenshots/15-finance.png) |
+
+| Workflows | Integrations (mock providers) |
+|---|---|
+| ![Workflows](docs/screenshots/16-workflows.png) | ![Integrations](docs/screenshots/17-integrations.png) |
+
+| Knowledge (search) | Settings (role permissions) |
+|---|---|
+| ![Knowledge](docs/screenshots/18-knowledge.png) | ![Settings](docs/screenshots/23-settings.png) |
+
+### Role-based access (RBAC)
+
+A **viewer** sees read-only dashboards; approvals are disabled and the audit trail is denied — enforced on the server, not just hidden in the UI.
+
+| Viewer dashboard | Viewer denied audit access |
+|---|---|
+| ![Viewer dashboard](docs/screenshots/30-viewer-dashboard.png) | ![Viewer forbidden](docs/screenshots/31-viewer-audit-forbidden.png) |
+
+### Mobile
+
+| Mobile dashboard | Mobile navigation |
+|---|---|
+| ![Mobile dashboard](docs/screenshots/40-mobile-dashboard.png) | ![Mobile nav](docs/screenshots/41-mobile-nav.png) |
+
+### Public marketing
+
+| Sign in (role selection) | Showcase (industry switcher) |
+|---|---|
+| ![Login](docs/screenshots/02-login.png) | ![Showcase](docs/screenshots/03-showcase.png) |
+
+---
+
 ## Tech Stack
 
 | Concern | Choice |
