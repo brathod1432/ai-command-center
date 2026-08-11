@@ -1,3 +1,5 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import type { ActionComment, ApprovalDecision, AuditRecord, ProposedAction, Role } from "@/lib/types";
 import { decide } from "@/lib/governance";
 import { computeHash, GENESIS_HASH, verifyChain, type ChainStatus } from "@/lib/governance/audit-chain";
@@ -44,8 +46,37 @@ function seed(): StoreState {
   return state;
 }
 
+/**
+ * Best-effort file persistence so decisions/comments/audit survive a restart.
+ * Fail-safe: any I/O error silently falls back to in-memory. Disabled under
+ * test and when HELM_PERSIST=off. See docs/improvements-v3.md §2 (U5).
+ */
+const DATA_DIR = join(process.cwd(), ".data");
+const DATA_FILE = join(DATA_DIR, "helm-store.json");
+const PERSIST = process.env.NODE_ENV !== "test" && process.env.HELM_PERSIST !== "off";
+
+function loadFromDisk(): StoreState | null {
+  if (!PERSIST) return null;
+  try {
+    if (existsSync(DATA_FILE)) return JSON.parse(readFileSync(DATA_FILE, "utf8")) as StoreState;
+  } catch {
+    /* corrupt or unreadable — fall back to seed */
+  }
+  return null;
+}
+
+function persist(current: StoreState): void {
+  if (!PERSIST) return;
+  try {
+    if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+    writeFileSync(DATA_FILE, JSON.stringify(current));
+  } catch {
+    /* read-only FS or other error — keep working in memory */
+  }
+}
+
 const g = globalThis as unknown as { __helmStore?: StoreState };
-if (!g.__helmStore) g.__helmStore = seed();
+if (!g.__helmStore) g.__helmStore = loadFromDisk() ?? seed();
 const state = g.__helmStore;
 
 export interface ActivityItem {
@@ -78,7 +109,9 @@ export const store = {
   },
 
   addAudit(record: Omit<AuditRecord, "hash" | "prevHash">): AuditRecord {
-    return appendAudit(state, record);
+    const r = appendAudit(state, record);
+    persist(state);
+    return r;
   },
 
   listComments(tenantId: string, actionId: string): ActionComment[] {
@@ -128,6 +161,7 @@ export const store = {
     const idx = state.actions.findIndex((a) => a.id === action.id && a.tenantId === params.tenantId);
     if (idx >= 0) state.actions[idx] = result.action;
     const audit = appendAudit(state, { ...result.audit });
+    persist(state);
     logger.info("governance.decision", {
       tenantId: params.tenantId,
       actionId: params.actionId,
@@ -162,6 +196,7 @@ export const store = {
       outcome: "info",
       insightId: action.insightId,
     });
+    persist(state);
     return action;
   },
 
@@ -183,6 +218,7 @@ export const store = {
       outcome: "info",
       insightId: action.insightId,
     });
+    persist(state);
     return action;
   },
 
@@ -206,6 +242,7 @@ export const store = {
       createdAt: new Date().toISOString(),
     };
     state.comments.push(comment);
+    persist(state);
     return comment;
   },
 };

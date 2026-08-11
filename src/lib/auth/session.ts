@@ -11,7 +11,13 @@ import { RoleSchema } from "@/lib/types";
  */
 
 export const SESSION_COOKIE = "helm_session";
+export const CSRF_COOKIE = "helm_csrf";
+export const CSRF_HEADER = "x-csrf-token";
+
+/** Idle window: a session must see activity within this window (sliding). */
 export const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 hours
+/** Absolute cap: even active sessions expire at this age since first login. */
+export const SESSION_ABSOLUTE_TTL_SECONDS = 60 * 60 * 24; // 24 hours
 
 export const SessionPayloadSchema = z.object({
   userId: z.string(),
@@ -19,9 +25,35 @@ export const SessionPayloadSchema = z.object({
   role: RoleSchema,
   name: z.string(),
   email: z.string(),
-  exp: z.number(), // epoch seconds
+  exp: z.number(), // sliding/idle expiry (epoch seconds)
+  iat: z.number().optional(), // issued-at (epoch seconds)
+  absExp: z.number().optional(), // absolute expiry cap (epoch seconds)
 });
 export type SessionPayload = z.infer<typeof SessionPayloadSchema>;
+
+/** Build a fresh session payload at login. */
+export function newSessionPayload(base: Pick<SessionPayload, "userId" | "tenantId" | "role" | "name" | "email">): SessionPayload {
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    ...base,
+    iat: now,
+    exp: now + SESSION_TTL_SECONDS,
+    absExp: now + SESSION_ABSOLUTE_TTL_SECONDS,
+  };
+}
+
+/**
+ * Sliding refresh: extend the idle expiry on activity, capped by the absolute
+ * expiry. Returns null when no refresh is needed or possible.
+ */
+export function refreshedPayload(p: SessionPayload, nowMs = Date.now()): SessionPayload | null {
+  const now = Math.floor(nowMs / 1000);
+  const abs = p.absExp ?? now + SESSION_ABSOLUTE_TTL_SECONDS;
+  if (now >= abs) return null; // absolute cap reached
+  const nextExp = Math.min(now + SESSION_TTL_SECONDS, abs);
+  if (nextExp <= p.exp) return null; // nothing meaningful to extend
+  return { ...p, exp: nextExp, absExp: abs };
+}
 
 function getSecret(): string {
   const secret = process.env.SESSION_SECRET;
@@ -83,7 +115,9 @@ export async function verifySession(token: string | undefined | null): Promise<S
     const json = new TextDecoder().decode(fromBase64Url(body));
     const parsed = SessionPayloadSchema.safeParse(JSON.parse(json));
     if (!parsed.success) return null;
-    if (parsed.data.exp * 1000 < Date.now()) return null;
+    const now = Date.now();
+    if (parsed.data.exp * 1000 < now) return null; // idle/sliding expiry
+    if (parsed.data.absExp && parsed.data.absExp * 1000 < now) return null; // absolute cap
     return parsed.data;
   } catch {
     return null;

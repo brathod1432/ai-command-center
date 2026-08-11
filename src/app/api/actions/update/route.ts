@@ -3,7 +3,7 @@ import { ActionUpdateInputSchema } from "@/lib/types";
 import { getSession } from "@/lib/auth/current-user";
 import { requirePermission } from "@/lib/auth/authorize";
 import { rateLimit } from "@/lib/security/rate-limit";
-import { assertSameOrigin, clientId, correlationId, jsonSecure, rateHeaders, toErrorResponse } from "@/lib/security/request";
+import { assertCsrf, assertSameOrigin, clientId, correlationId, jsonSecure, rateHeaders, toErrorResponse } from "@/lib/security/request";
 import { store } from "@/lib/data/store";
 
 /**
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
   const cid = correlationId();
   try {
     assertSameOrigin(req);
+    assertCsrf(req);
 
     const rl = rateLimit(`action-update:${clientId(req)}`, 120, 60_000);
     if (!rl.ok) {

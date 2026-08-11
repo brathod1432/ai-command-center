@@ -34,14 +34,25 @@ export function AuditTable({
     );
   }, [records, query]);
 
-  function exportJson() {
-    const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
+  function download(content: string, type: string, ext: string) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `helm-audit-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `helm-audit-${new Date().toISOString().slice(0, 10)}.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function exportJson() {
+    download(JSON.stringify(records, null, 2), "application/json", "json");
+  }
+
+  function exportCsv() {
+    const cols: (keyof AuditRecord)[] = ["timestamp", "actorRole", "category", "action", "tier", "outcome", "reason", "hash"];
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [cols.join(",")].concat(records.map((r) => cols.map((c) => esc(r[c])).join(",")));
+    download(rows.join("\r\n"), "text/csv", "csv");
   }
 
   return (
@@ -66,10 +77,16 @@ export function AuditTable({
               Chain broken{integrity.brokenAt ? ` at ${integrity.brokenAt}` : ""}
             </Badge>
           )}
-          <Button variant="outline" size="sm" onClick={exportJson} className="ml-auto">
-            <Download className="h-4 w-4" aria-hidden="true" />
-            Export JSON
-          </Button>
+          <div className="ml-auto flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportCsv}>
+              <Download className="h-4 w-4" aria-hidden="true" />
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportJson}>
+              <Download className="h-4 w-4" aria-hidden="true" />
+              JSON
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

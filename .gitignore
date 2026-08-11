@@ -18,6 +18,9 @@ next-env.d.ts
 # production
 /build
 
+# local persisted store (best-effort file persistence)
+/.data
+
 # misc
 .DS_Store
 *.pem

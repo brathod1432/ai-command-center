@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { NotificationBell } from "@/components/shell/notification-bell";
 import { useSession } from "@/components/shell/session-context";
 import { roleLabel } from "@/lib/rbac";
+import { csrfHeaders } from "@/lib/security/csrf-client";
 import { toast } from "@/components/ui/toast";
 
 export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
@@ -19,7 +20,10 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   async function logout() {
     setLoggingOut(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST", headers: { "content-type": "application/json" } });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...csrfHeaders() },
+      });
       router.push("/login");
       router.refresh();
     } catch {

@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, verifySession } from "@/lib/auth/session";
+import {
+  SESSION_COOKIE,
+  refreshedPayload,
+  sessionCookieOptions,
+  signSession,
+  verifySession,
+} from "@/lib/auth/session";
 
 /**
  * Route protection. Public routes are allowlisted; everything else requires a
@@ -32,7 +38,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // Sliding refresh: extend the idle window on activity (capped by absExp).
+  const res = NextResponse.next();
+  const refreshed = refreshedPayload(session);
+  if (refreshed) {
+    res.cookies.set(SESSION_COOKIE, await signSession(refreshed), sessionCookieOptions());
+  }
+  return res;
 }
 
 export const config = {

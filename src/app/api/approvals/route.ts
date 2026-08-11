@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth/current-user";
 import { requirePermission } from "@/lib/auth/authorize";
 import { ApprovalError } from "@/lib/governance";
 import { rateLimit } from "@/lib/security/rate-limit";
-import { assertSameOrigin, clientId, correlationId, jsonSecure, rateHeaders, toErrorResponse } from "@/lib/security/request";
+import { assertCsrf, assertSameOrigin, clientId, correlationId, jsonSecure, rateHeaders, toErrorResponse } from "@/lib/security/request";
 import { store } from "@/lib/data/store";
 
 /**
@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
   const cid = correlationId();
   try {
     assertSameOrigin(req);
+    assertCsrf(req);
 
     const rl = rateLimit(`approve:${clientId(req)}`, 60, 60_000);
     if (!rl.ok) {

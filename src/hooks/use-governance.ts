@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ActionComment, ActionUpdateInput, ApprovalDecision, AuditRecord, ProposedAction } from "@/lib/types";
+import { csrfHeaders } from "@/lib/security/csrf-client";
 
 export interface ActivityItem {
   id: string;
@@ -47,7 +48,7 @@ export function useApprove() {
     mutationFn: async (input: ApprovalInputClient): Promise<ProposedAction> => {
       const res = await fetch("/api/approvals", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...csrfHeaders() },
         body: JSON.stringify(input),
       });
       const data = await res.json().catch(() => ({}));
@@ -85,7 +86,7 @@ export function useActionUpdate() {
     mutationFn: async (input: ActionUpdateInput) => {
       const res = await fetch("/api/actions/update", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...csrfHeaders() },
         body: JSON.stringify(input),
       });
       const data = await res.json().catch(() => ({}));

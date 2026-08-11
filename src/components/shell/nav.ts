@@ -1,10 +1,12 @@
 import {
+  Activity,
   Banknote,
   BookOpen,
   Bot,
   Code2,
   FileBarChart,
   HeartHandshake,
+  Inbox,
   LayoutDashboard,
   LifeBuoy,
   Megaphone,
@@ -38,6 +40,7 @@ export const NAV_SECTIONS: NavSection[] = [
     heading: "Overview",
     items: [
       { href: "/dashboard", label: "Command Center", icon: LayoutDashboard, permission: "dashboard:read" },
+      { href: "/my-work", label: "My Work", icon: Inbox, permission: "dashboard:read" },
       { href: "/agents", label: "Agents", icon: Bot, permission: "agent:read" },
     ],
   },
@@ -67,6 +70,7 @@ export const NAV_SECTIONS: NavSection[] = [
     heading: "Governance",
     items: [
       { href: "/audit", label: "Audit Trail", icon: ScrollText, permission: "audit:read" },
+      { href: "/status", label: "Status", icon: Activity, permission: "dashboard:read" },
       { href: "/team", label: "Team", icon: Users, permission: "user:read" },
       { href: "/settings", label: "Settings", icon: Settings, permission: "dashboard:read" },
       { href: "/showcase", label: "Showcase", icon: Sparkles },

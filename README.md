@@ -141,17 +141,20 @@ A genuinely usable, governed command center:
 - **Authentication + RBAC** — demo sign-in with role selection; signed HttpOnly session; `middleware` route protection; server-enforced authorization (defense in depth).
 - **Executive Command Center** — company health, KPIs, agent insights, and a governance queue.
 - **10 agent workspaces** — `/agents` and `/agents/[id]` with mission, insights, and pending approvals.
-- **Real governance flow** — approve/decline consequential actions via a Zod-validated, RBAC-checked, CSRF-protected, rate-limited API that writes an **immutable, hash-chained audit record**; view it in **Audit Trail** (with an **integrity-verified** badge) and export it.
+- **My Work inbox** — a personal starting point: approvals waiting on you, actions assigned to you, and what you've completed.
+- **Real governance flow** — approve/decline consequential actions via a Zod-validated, RBAC-checked, CSRF-protected, rate-limited API that writes an **immutable, hash-chained audit record**; view it in **Audit Trail** (integrity-verified badge) and export **CSV/JSON**.
 - **Action follow-through** — after approval, **assign an owner + due date, comment, and mark complete** — turning a recommendation into tracked work.
 - **Activity feed** — a topbar notification bell showing recent decisions/events.
+- **Status page** — integration health, audit-chain integrity, and system health at a glance.
 - **Filtering & charts** — filter insights by severity/domain; real Recharts trend charts on the dashboard and function pages.
 - **Function pages** — Sales, Engineering, Finance, Support, Customer Success, Marketing, Operations, Product.
 - **Team & permissions** (admin) — member roster + role→permission matrix for access reviews.
 - **Workflows, Integrations (mock providers), Knowledge (search), Reports (export), Settings, Showcase (industry switcher).**
-- **App shell** — sidebar navigation, command palette (⌘K, searches nav/agents/docs), dark mode, responsive/mobile, toasts, empty/loading/error states.
-- **Security** — auth + session, middleware + **server-side page-level RBAC**, CSP + hardened headers, `no-store` on authed APIs, rate-limit headers, tamper-evident audit, fail-closed session secret, structured logging, health endpoint.
+- **App shell** — sidebar navigation, command palette (⌘K, searches nav/agents/insights/actions/docs), dark mode, responsive/mobile, toasts, empty/loading/error states.
+- **Durable data** — best-effort file persistence so decisions/comments/audit survive restarts.
+- **Security** — auth + **sliding session** (idle timeout + absolute cap), middleware + **server-side page-level RBAC**, **CSRF double-submit token + same-origin**, CSP + hardened headers (COOP/CORP), `no-store` on authed APIs, rate-limit headers, **tamper-evident audit**, fail-closed session secret, structured logging, health endpoint.
 
-See [`docs/improvements.md`](docs/improvements.md) and [`docs/improvements-v2.md`](docs/improvements-v2.md) for the full user/client/security analysis and what's next (e.g., scheduled digests, saved views, SSO/MFA).
+See [`docs/improvements.md`](docs/improvements.md), [`docs/improvements-v2.md`](docs/improvements-v2.md), and [`docs/improvements-v3.md`](docs/improvements-v3.md) for the full user/client/security analysis and what's next (CSP nonce, SSO/MFA, scheduled digests).
 
 ---
 

@@ -1,7 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { RoleSchema } from "@/lib/types";
-import { SESSION_COOKIE, SESSION_TTL_SECONDS, sessionCookieOptions, signSession } from "@/lib/auth/session";
+import {
+  CSRF_COOKIE,
+  SESSION_COOKIE,
+  newSessionPayload,
+  sessionCookieOptions,
+  signSession,
+} from "@/lib/auth/session";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { assertSameOrigin, clientId, correlationId, toErrorResponse } from "@/lib/security/request";
 import { store } from "@/lib/data/store";
@@ -45,12 +51,21 @@ export async function POST(req: NextRequest) {
 
     const { email, role } = parsed.data;
     const name = displayName(email);
-    const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-    const payload = { userId: `u_${role}`, tenantId: "acme", role, name, email, exp };
+    const payload = newSessionPayload({ userId: `u_${role}`, tenantId: "acme", role, name, email });
     const token = await signSession(payload);
 
-    const res = NextResponse.json({ ok: true, user: { name, role, email } });
+    // Double-submit CSRF token: readable by client JS, echoed back in a header.
+    const csrf = crypto.randomUUID();
+
+    const res = NextResponse.json({ ok: true, user: { name, role, email }, csrfToken: csrf });
     res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
+    res.cookies.set(CSRF_COOKIE, csrf, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24,
+    });
 
     store.addAudit({
       id: `aud_login_${Date.now()}`,

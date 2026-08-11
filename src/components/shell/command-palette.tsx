@@ -9,6 +9,8 @@ import { useSession } from "@/components/shell/session-context";
 import { can } from "@/lib/rbac";
 import { AGENTS } from "@/lib/agents/registry";
 import { KNOWLEDGE_DOCS } from "@/lib/data/catalog";
+import { INSIGHTS } from "@/lib/data/mock";
+import { useActions } from "@/hooks/use-governance";
 import { Button } from "@/components/ui/button";
 
 /** ⌘K / Ctrl+K command palette for fast navigation. */
@@ -17,6 +19,8 @@ export function CommandPalette() {
   const router = useRouter();
   const { role } = useSession();
   const items = ALL_NAV_ITEMS.filter((i) => !i.permission || can(role, i.permission));
+  const { data: actions = [] } = useActions();
+  const canReadInsights = can(role, "insight:read");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -87,6 +91,36 @@ export function CommandPalette() {
                   className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
                 >
                   {a.name}
+                </Command.Item>
+              ))}
+            </Command.Group>
+          ) : null}
+
+          {canReadInsights ? (
+            <Command.Group heading="Insights" className="text-xs text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+              {INSIGHTS.map((i) => (
+                <Command.Item
+                  key={i.id}
+                  value={`insight ${i.title} ${i.domain}`}
+                  onSelect={() => go(`/agents/${i.agentId}`)}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                >
+                  {i.title}
+                </Command.Item>
+              ))}
+            </Command.Group>
+          ) : null}
+
+          {canReadInsights && actions.length > 0 ? (
+            <Command.Group heading="Actions" className="text-xs text-muted-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+              {actions.map((a) => (
+                <Command.Item
+                  key={a.id}
+                  value={`action ${a.title} ${a.category}`}
+                  onSelect={() => go(`/agents/${a.agentId}`)}
+                  className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+                >
+                  {a.title}
                 </Command.Item>
               ))}
             </Command.Group>

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AuthzError } from "@/lib/auth/authorize";
+import { CSRF_COOKIE, CSRF_HEADER } from "@/lib/auth/session";
 import { logger } from "@/lib/observability/logger";
 
 /**
@@ -30,6 +31,19 @@ export function assertSameOrigin(req: NextRequest): void {
   const host = req.headers.get("host");
   if (!host || originHost !== host) {
     throw new AuthzError("Cross-origin request blocked", 403);
+  }
+}
+
+/**
+ * CSRF double-submit check: the `x-csrf-token` header must match the
+ * `helm_csrf` cookie. Combined with assertSameOrigin, this is defense in depth
+ * against CSRF. See docs/improvements-v3.md §4 (S1).
+ */
+export function assertCsrf(req: NextRequest): void {
+  const cookie = req.cookies.get(CSRF_COOKIE)?.value;
+  const header = req.headers.get(CSRF_HEADER);
+  if (!cookie || !header || cookie !== header) {
+    throw new AuthzError("Invalid CSRF token", 403);
   }
 }
 
