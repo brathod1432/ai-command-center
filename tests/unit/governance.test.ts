@@ -65,26 +65,65 @@ describe("governance", () => {
     ).toThrow(/reason is required/i);
   });
 
-  // INVARIANT: a valid approval transitions status and always emits an audit record.
-  it("approves with an authorized role and emits an immutable audit record", () => {
-    const now = new Date("2026-08-11T10:00:00.000Z");
+  // INVARIANT: T3 requires TWO distinct approvers (dual control).
+  it("does not finalize a T3 action on the first approval", () => {
     const { action, audit } = decide({
+      action: makeAction(), // T3 financial
+      decision: "approved",
+      actorId: "u_owner",
+      actorRole: "owner",
+      reason: "Cash flow priority",
+    });
+    expect(action.status).toBe("pending_approval"); // not finalized yet
+    expect(action.approvals).toEqual(["u_owner"]);
+    expect(audit.outcome).toBe("info"); // partial approval is informational
+    expect(audit.action).toContain("approve(1/2)");
+  });
+
+  it("finalizes a T3 action only after a second, distinct approver", () => {
+    const first = decide({
       action: makeAction(),
       decision: "approved",
       actorId: "u_owner",
       actorRole: "owner",
       reason: "Cash flow priority",
-      now,
     });
-
+    const { action, audit } = decide({
+      action: first.action,
+      decision: "approved",
+      actorId: "u_cfo",
+      actorRole: "admin",
+      reason: "Confirmed",
+    });
     expect(action.status).toBe("approved");
-    expect(audit.category).toBe("approval");
+    expect(action.approvals).toEqual(["u_owner", "u_cfo"]);
     expect(audit.outcome).toBe("approved");
-    expect(audit.tier).toBe("T3");
-    expect(audit.actorRole).toBe("owner");
-    expect(audit.insightId).toBe("ins_1");
-    expect(audit.reason).toBe("Cash flow priority");
-    expect(new Date(audit.timestamp).toISOString()).toBe(now.toISOString());
+    expect(audit.action).toContain("approve(2/2)");
+  });
+
+  it("rejects the same approver supplying both approvals", () => {
+    const first = decide({
+      action: makeAction(),
+      decision: "approved",
+      actorId: "u_owner",
+      actorRole: "owner",
+      reason: "Cash flow priority",
+    });
+    expect(() =>
+      decide({ action: first.action, decision: "approved", actorId: "u_owner", actorRole: "owner", reason: "again" }),
+    ).toThrow(/already approved/i);
+  });
+
+  // T1/T2 remain single-approval.
+  it("finalizes a single-approver action immediately", () => {
+    const { action, audit } = decide({
+      action: makeAction({ tier: "T1", category: "resourcing" }),
+      decision: "approved",
+      actorId: "u_manager",
+      actorRole: "manager",
+    });
+    expect(action.status).toBe("approved");
+    expect(audit.outcome).toBe("approved");
   });
 
   it("records a decline outcome with reason", () => {

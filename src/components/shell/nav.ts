@@ -16,6 +16,7 @@ import {
   Settings,
   Settings2,
   Sparkles,
+  Target,
   TrendingUp,
   Users,
   Workflow,
@@ -41,6 +42,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/dashboard", label: "Command Center", icon: LayoutDashboard, permission: "dashboard:read" },
       { href: "/my-work", label: "My Work", icon: Inbox, permission: "dashboard:read" },
+      { href: "/outcomes", label: "Outcomes", icon: Target, permission: "dashboard:read" },
       { href: "/agents", label: "Agents", icon: Bot, permission: "agent:read" },
     ],
   },

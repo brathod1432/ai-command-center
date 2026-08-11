@@ -174,8 +174,15 @@ export const ProposedActionSchema = z.object({
   owner: z.string().optional(),
   dueDate: z.string().optional(),
   completedAt: z.string().optional(),
+  // Dual-control: userIds who have approved (T3 requires two distinct approvers).
+  approvals: z.array(z.string()).optional(),
 });
 export type ProposedAction = z.infer<typeof ProposedActionSchema>;
+
+/** Number of distinct approvals required before a tier's action executes. */
+export function requiredApprovals(tier: "T0" | "T1" | "T2" | "T3"): number {
+  return tier === "T3" ? 2 : 1;
+}
 
 /** A comment on an action (collaboration + audit context). */
 export const ActionCommentSchema = z.object({

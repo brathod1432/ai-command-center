@@ -6,6 +6,7 @@ import type {
   ProposedAction,
   Role,
 } from "@/lib/types";
+import { requiredApprovals } from "@/lib/types";
 import { canApprove } from "@/lib/rbac";
 
 /**
@@ -69,10 +70,33 @@ export function decide(params: {
     throw new ApprovalError("A reason is required for declines and T3 approvals");
   }
 
-  const nextStatus =
-    decision === "approved" ? "approved" : decision === "declined" ? "declined" : "changes_requested";
+  const needed = requiredApprovals(action.tier);
+  const existing = action.approvals ?? [];
 
-  const updated: ProposedAction = { ...action, status: nextStatus };
+  let updated: ProposedAction;
+  let auditAction: string;
+  let outcome: AuditRecord["outcome"];
+
+  if (decision === "approved") {
+    // Dual-control: a single user cannot supply two of the required approvals.
+    if (existing.includes(actorId)) {
+      throw new ApprovalError("You have already approved this action; a second, different approver is required");
+    }
+    const approvals = [...existing, actorId];
+    const finalized = approvals.length >= needed;
+    updated = { ...action, approvals, status: finalized ? "approved" : "pending_approval" };
+    // Partial (first-of-two) approvals are informational; only the finalizing one is "approved".
+    outcome = finalized ? "approved" : "info";
+    auditAction = needed > 1 ? `approve(${approvals.length}/${needed}):${action.title}` : `approve:${action.title}`;
+  } else if (decision === "declined") {
+    updated = { ...action, status: "declined" };
+    outcome = "declined";
+    auditAction = `decline:${action.title}`;
+  } else {
+    updated = { ...action, status: "changes_requested" };
+    outcome = "changes_requested";
+    auditAction = `changes_requested:${action.title}`;
+  }
 
   const audit: AuditRecord = {
     id: `aud_${action.id}_${now.getTime()}`,
@@ -81,9 +105,9 @@ export function decide(params: {
     actorId,
     actorRole,
     category: "approval",
-    action: `${decision}:${action.title}`,
+    action: auditAction,
     tier: action.tier,
-    outcome: decision,
+    outcome,
     reason: reason?.trim() || undefined,
     insightId: action.insightId,
   };

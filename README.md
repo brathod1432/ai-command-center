@@ -217,6 +217,9 @@ A genuinely usable, governed command center:
 - **Real governance flow** — approve/decline consequential actions via a Zod-validated, RBAC-checked, CSRF-protected, rate-limited API that writes an **immutable, hash-chained audit record**; view it in **Audit Trail** (integrity-verified badge) and export **CSV/JSON**.
 - **Action follow-through** — after approval, **assign an owner + due date, comment, and mark complete** — turning a recommendation into tracked work.
 - **Activity feed** — a topbar notification bell showing recent decisions/events.
+- **Two-person approval (dual control)** — high-risk T3 actions (financial/legal/access) require **two distinct approvers**; a user can't approve twice.
+- **Outcomes view** — approvals, completions, declines, blocked attempts, and audit integrity at a glance.
+- **Role-based landing** — managers land on My Work, auditors on the Audit Trail, others on the Command Center.
 - **Status page** — integration health, audit-chain integrity, and system health at a glance.
 - **Filtering & charts** — filter insights by severity/domain; real Recharts trend charts on the dashboard and function pages.
 - **Function pages** — Sales, Engineering, Finance, Support, Customer Success, Marketing, Operations, Product.
@@ -226,7 +229,7 @@ A genuinely usable, governed command center:
 - **Durable data** — best-effort file persistence so decisions/comments/audit survive restarts.
 - **Security** — auth + **sliding session** (idle timeout + absolute cap), middleware + **server-side page-level RBAC**, **CSRF double-submit token + same-origin**, CSP + hardened headers (COOP/CORP), `no-store` on authed APIs, rate-limit headers, **tamper-evident audit**, fail-closed session secret, structured logging, health endpoint.
 
-See [`docs/improvements.md`](docs/improvements.md), [`docs/improvements-v2.md`](docs/improvements-v2.md), and [`docs/improvements-v3.md`](docs/improvements-v3.md) for the full user/client/security analysis and what's next (CSP nonce, SSO/MFA, scheduled digests).
+See the improvement analyses [`v1`](docs/improvements.md), [`v2`](docs/improvements-v2.md), [`v3`](docs/improvements-v3.md), [`v4`](docs/improvements-v4.md), and [`v5`](docs/improvements-v5.md) for the full user/client/security reasoning and roadmap (bulk triage, SSO/MFA, scheduled digests).
 
 ---
 

@@ -23,7 +23,17 @@ const ROLE_HINTS: Record<Role, string> = {
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") || "/dashboard";
+
+  // Role-based default landing (overridden by an explicit ?next=).
+  const roleLanding: Record<Role, string> = {
+    owner: "/dashboard",
+    admin: "/dashboard",
+    executive: "/dashboard",
+    manager: "/my-work",
+    analyst: "/dashboard",
+    viewer: "/dashboard",
+    auditor: "/audit",
+  };
 
   const [email, setEmail] = useState("founder@example.com");
   const [role, setRole] = useState<Role>("executive");
@@ -46,7 +56,8 @@ export function LoginForm() {
         setLoading(false);
         return;
       }
-      router.push(next);
+      const destination = params.get("next") || roleLanding[role];
+      router.push(destination);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");

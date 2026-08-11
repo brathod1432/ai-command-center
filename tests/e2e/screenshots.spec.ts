@@ -15,7 +15,9 @@ async function login(page: Page, role: string) {
   await page.getByLabel("Work email").fill(`${role}@example.com`);
   await page.getByLabel("Role").selectOption(role);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(/\/dashboard/);
+  // Role-based landing may route elsewhere; land on the dashboard for shots.
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"));
+  await page.goto("/dashboard");
   await page.waitForLoadState("networkidle");
 }
 

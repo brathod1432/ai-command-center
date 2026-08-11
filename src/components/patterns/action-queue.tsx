@@ -81,8 +81,11 @@ function CommentThread({ actionId }: { actionId: string }) {
 function ActionItem({ action, role }: { action: ProposedAction; role: Role }) {
   const approve = useApprove();
   const update = useActionUpdate();
-  const { name } = useSession();
+  const { name, userId } = useSession();
   const allowed = canApprove(role);
+  const needed = action.tier === "T3" ? 2 : 1;
+  const approvalCount = action.approvals?.length ?? 0;
+  const iApproved = (action.approvals ?? []).includes(userId);
   const isPendingReview = action.status === "pending_approval" || action.status === "proposed";
   const isApproved = action.status === "approved";
   const isClosed = action.status === "closed" || Boolean(action.completedAt);
@@ -153,6 +156,12 @@ function ActionItem({ action, role }: { action: ProposedAction; role: Role }) {
       {/* Pending review: approve / decline */}
       {isPendingReview ? (
         <>
+          {needed > 1 ? (
+            <p className="mt-2 text-xs font-medium text-warning">
+              Dual control: {approvalCount} of {needed} approvals
+              {approvalCount > 0 ? " — awaiting a second, different approver" : " required (two-person)"}
+            </p>
+          ) : null}
           {showReason || needsReason ? (
             <div className="mt-3">
               <label htmlFor={`reason-${action.id}`} className="text-xs font-medium">
@@ -169,8 +178,8 @@ function ActionItem({ action, role }: { action: ProposedAction; role: Role }) {
             </div>
           ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button size="sm" disabled={!allowed || approve.isPending} onClick={() => submit("approved")}>
-              <Check className="h-4 w-4" aria-hidden="true" /> Approve
+            <Button size="sm" disabled={!allowed || approve.isPending || iApproved} onClick={() => submit("approved")}>
+              <Check className="h-4 w-4" aria-hidden="true" /> {needed > 1 && approvalCount > 0 ? "Approve (2nd)" : "Approve"}
             </Button>
             <Button
               size="sm"
@@ -182,6 +191,8 @@ function ActionItem({ action, role }: { action: ProposedAction; role: Role }) {
             </Button>
             {!allowed ? (
               <span className="text-xs text-muted-foreground">Your role cannot approve — routed to {action.suggestedOwnerRole}.</span>
+            ) : iApproved ? (
+              <span className="text-xs text-muted-foreground">You approved this — a second, different approver is required.</span>
             ) : null}
           </div>
         </>
