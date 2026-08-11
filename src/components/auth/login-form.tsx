@@ -77,6 +77,11 @@ export function LoginForm() {
         </p>
       </CardHeader>
       <CardContent>
+        {params.get("reason") === "idle" ? (
+          <p className="mb-4 rounded-md bg-info/10 px-3 py-2 text-sm text-info" role="status">
+            You were signed out due to inactivity. Please sign in again.
+          </p>
+        ) : null}
         <form onSubmit={onSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
             <Label htmlFor="email">Work email</Label>

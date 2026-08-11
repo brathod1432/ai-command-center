@@ -79,6 +79,34 @@ export function useComments(actionId: string, enabled: boolean) {
   });
 }
 
+export interface BulkResult {
+  results: Array<{ actionId: string; ok: boolean; status?: string; error?: string }>;
+  succeeded: number;
+  failed: number;
+}
+
+/** Approve or decline several actions at once. */
+export function useBulkApprove() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { actionIds: string[]; decision: ApprovalDecision; reason?: string }): Promise<BulkResult> => {
+      const res = await fetch("/api/approvals/bulk", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...csrfHeaders() },
+        body: JSON.stringify(input),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Request failed");
+      return data as BulkResult;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["actions"] });
+      qc.invalidateQueries({ queryKey: ["audit"] });
+      qc.invalidateQueries({ queryKey: ["activity"] });
+    },
+  });
+}
+
 /** Assign / complete / comment on an action. */
 export function useActionUpdate() {
   const qc = useQueryClient();

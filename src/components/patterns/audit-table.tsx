@@ -44,14 +44,23 @@ export function AuditTable({
     URL.revokeObjectURL(url);
   }
 
+  // Chain head = most recent record's hash (records are sorted newest-first).
+  const head = records[0]?.hash ?? "GENESIS";
+  const stamp = { exportedAt: new Date().toISOString(), integrity: { ...integrity, head } };
+
   function exportJson() {
-    download(JSON.stringify(records, null, 2), "application/json", "json");
+    // Integrity stamp travels with the data so it can be verified offline.
+    download(JSON.stringify({ ...stamp, records }, null, 2), "application/json", "json");
   }
 
   function exportCsv() {
-    const cols: (keyof AuditRecord)[] = ["timestamp", "actorRole", "category", "action", "tier", "outcome", "reason", "hash"];
+    const cols: (keyof AuditRecord)[] = ["timestamp", "actorRole", "category", "action", "tier", "outcome", "reason", "prevHash", "hash"];
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = [cols.join(",")].concat(records.map((r) => cols.map((c) => esc(r[c])).join(",")));
+    const header = [
+      `# Helm audit export — ${stamp.exportedAt}`,
+      `# integrity: ${integrity.ok ? "VERIFIED" : "BROKEN"}, records=${integrity.count}, head=${head}`,
+    ];
+    const rows = [...header, cols.join(",")].concat(records.map((r) => cols.map((c) => esc(r[c])).join(",")));
     download(rows.join("\r\n"), "text/csv", "csv");
   }
 

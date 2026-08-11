@@ -83,6 +83,39 @@ describe("governance store", () => {
     expect(store.listComments(TENANT, "act_sprint_escalation").length).toBeGreaterThan(0);
   });
 
+  it("bulk-approves several actions, respecting dual control per item", () => {
+    // T1 finalizes on one approval; T3 needs a second distinct approver.
+    const results = store.bulkDecision({
+      tenantId: TENANT,
+      actionIds: ["act_churn_outreach", "act_ar_collections"],
+      decision: "approved",
+      actorId: "u_owner",
+      actorRole: "owner",
+      reason: "batch review",
+    });
+    expect(results).toHaveLength(2);
+    const churn = results.find((r) => r.actionId === "act_churn_outreach");
+    const ar = results.find((r) => r.actionId === "act_ar_collections");
+    expect(churn?.ok).toBe(true);
+    expect(churn?.status).toBe("approved"); // T2 → single approval finalizes
+    expect(ar?.ok).toBe(true);
+    expect(ar?.status).toBe("pending_approval"); // T3 → still needs a second approver
+  });
+
+  it("captures per-item failures in a bulk decision without aborting", () => {
+    const results = store.bulkDecision({
+      tenantId: TENANT,
+      actionIds: ["act_sprint_escalation", "does_not_exist"],
+      decision: "approved",
+      actorId: "u_mgr",
+      actorRole: "manager",
+    });
+    expect(results.find((r) => r.actionId === "act_sprint_escalation")?.ok).toBe(true);
+    const missing = results.find((r) => r.actionId === "does_not_exist");
+    expect(missing?.ok).toBe(false);
+    expect(missing?.error).toMatch(/not found/i);
+  });
+
   it("records a denied authorization attempt and keeps the chain valid", () => {
     const before = store.listAudit(TENANT).length;
     store.recordDenied({ tenantId: TENANT, actorId: "u_viewer", actorRole: "viewer", permission: "action:approve" });

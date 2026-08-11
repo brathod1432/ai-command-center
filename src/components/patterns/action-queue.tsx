@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ActionStatus, ActionTier, ProposedAction, Role } from "@/lib/types";
 import { canApprove } from "@/lib/rbac";
-import { useActionUpdate, useActions, useApprove, useComments } from "@/hooks/use-governance";
+import { useActionUpdate, useActions, useApprove, useBulkApprove, useComments } from "@/hooks/use-governance";
 import { useSession } from "@/components/shell/session-context";
 import { toast } from "@/components/ui/toast";
 import { timeAgo } from "@/lib/utils";
@@ -78,7 +78,19 @@ function CommentThread({ actionId }: { actionId: string }) {
   );
 }
 
-function ActionItem({ action, role }: { action: ProposedAction; role: Role }) {
+function ActionItem({
+  action,
+  role,
+  selectable,
+  selected,
+  onToggle,
+}: {
+  action: ProposedAction;
+  role: Role;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggle?: (id: string) => void;
+}) {
   const approve = useApprove();
   const update = useActionUpdate();
   const { name, userId } = useSession();
@@ -137,6 +149,15 @@ function ActionItem({ action, role }: { action: ProposedAction; role: Role }) {
   return (
     <div className="rounded-md border p-4">
       <div className="flex flex-wrap items-center gap-2">
+        {selectable ? (
+          <input
+            type="checkbox"
+            checked={Boolean(selected)}
+            onChange={() => onToggle?.(action.id)}
+            aria-label={`Select "${action.title}" for bulk action`}
+            className="h-4 w-4 rounded border-input accent-primary"
+          />
+        ) : null}
         <Badge variant={TIER_VARIANT[action.tier]}>{action.tier}</Badge>
         <span className="text-xs uppercase tracking-wide text-muted-foreground">{action.category.replace(/_/g, " ")}</span>
         {!isPendingReview ? <Badge variant={STATUS_VARIANT[action.status] ?? "secondary"}>{action.status.replace(/_/g, " ")}</Badge> : null}
@@ -237,6 +258,47 @@ export function ActionQueue({
 }) {
   const { data = [] } = useActions(initialActions);
   const actions = agentId ? data.filter((a) => a.agentId === agentId) : data;
+  const allowed = canApprove(role);
+  const bulk = useBulkApprove();
+
+  const pendingIds = actions
+    .filter((a) => a.status === "pending_approval" || a.status === "proposed")
+    .map((a) => a.id);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkReason, setBulkReason] = useState("");
+  const selectedList = [...selected].filter((id) => pendingIds.includes(id));
+
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  function runBulk(decision: "approved" | "declined") {
+    if (selectedList.length === 0) return;
+    if (decision === "declined" && !bulkReason.trim()) {
+      toast({ title: "A reason is required to decline", variant: "warning" });
+      return;
+    }
+    bulk.mutate(
+      { actionIds: selectedList, decision, reason: bulkReason.trim() || undefined },
+      {
+        onSuccess: (res) => {
+          setSelected(new Set());
+          setBulkReason("");
+          toast({
+            title: `Bulk ${decision}: ${res.succeeded} done${res.failed ? `, ${res.failed} needs attention` : ""}`,
+            description: res.failed ? "Some items need a second approver or a reason." : undefined,
+            variant: res.failed ? "warning" : "success",
+          });
+        },
+        onError: (e) => toast({ title: "Bulk action failed", description: (e as Error).message, variant: "error" }),
+      },
+    );
+  }
 
   return (
     <Card>
@@ -247,10 +309,46 @@ export function ActionQueue({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {allowed && selectedList.length > 0 ? (
+          <div className="sticky top-14 z-10 space-y-2 rounded-md border bg-accent/60 p-3 backdrop-blur">
+            <p className="text-sm font-medium">{selectedList.length} selected</p>
+            <input
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              placeholder="Reason (required to decline; used for T3 approvals)"
+              aria-label="Bulk decision reason"
+              className="w-full rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" disabled={bulk.isPending} onClick={() => runBulk("approved")}>
+                <Check className="h-4 w-4" aria-hidden="true" /> Approve selected
+              </Button>
+              <Button size="sm" variant="outline" disabled={bulk.isPending} onClick={() => runBulk("declined")}>
+                <X className="h-4 w-4" aria-hidden="true" /> Decline selected
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+                Clear
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         {actions.length === 0 ? (
           <p className="text-sm text-muted-foreground">No actions to review.</p>
         ) : (
-          actions.map((a) => <ActionItem key={a.id} action={a} role={role} />)
+          actions.map((a) => {
+            const isPending = a.status === "pending_approval" || a.status === "proposed";
+            return (
+              <ActionItem
+                key={a.id}
+                action={a}
+                role={role}
+                selectable={allowed && isPending}
+                selected={selected.has(a.id)}
+                onToggle={toggle}
+              />
+            );
+          })
         )}
       </CardContent>
     </Card>

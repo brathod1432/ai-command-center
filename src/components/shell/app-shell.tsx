@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { SidebarContent } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { ShortcutsHelp } from "@/components/shell/shortcuts-help";
+import { IdleLogout } from "@/components/shell/idle-logout";
 import { SessionProvider, type SessionInfo } from "@/components/shell/session-context";
 import { Toaster } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export function AppShell({ session, children }: { session: SessionInfo; children
       </div>
       <Toaster />
       <ShortcutsHelp />
+      <IdleLogout />
     </SessionProvider>
   );
 }

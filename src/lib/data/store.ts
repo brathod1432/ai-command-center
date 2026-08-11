@@ -187,6 +187,36 @@ export const store = {
     return { action: result.action, audit };
   },
 
+  /**
+   * Apply a decision to several actions in one pass. Each item goes through the
+   * same governed path (RBAC, reason rules, dual-control, audit); a per-item
+   * failure is captured, never aborting the batch. See docs/improvements-v6.md.
+   */
+  bulkDecision(params: {
+    tenantId: string;
+    actionIds: string[];
+    decision: ApprovalDecision;
+    actorId: string;
+    actorRole: Role;
+    reason?: string;
+  }): Array<{ actionId: string; ok: boolean; status?: string; error?: string }> {
+    return params.actionIds.map((actionId) => {
+      try {
+        const { action } = this.applyDecision({
+          tenantId: params.tenantId,
+          actionId,
+          decision: params.decision,
+          actorId: params.actorId,
+          actorRole: params.actorRole,
+          reason: params.reason,
+        });
+        return { actionId, ok: true, status: action.status };
+      } catch (err) {
+        return { actionId, ok: false, error: (err as Error).message };
+      }
+    });
+  },
+
   /** Assign an owner (and optional due date) to an action. */
   assignAction(params: {
     tenantId: string;

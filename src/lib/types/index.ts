@@ -220,6 +220,14 @@ export const ApprovalInputSchema = z.object({
 });
 export type ApprovalInput = z.infer<typeof ApprovalInputSchema>;
 
+// Bulk approval input (validated at the API boundary).
+export const BulkApprovalInputSchema = z.object({
+  actionIds: z.array(z.string().min(1).max(64)).min(1).max(50),
+  decision: ApprovalDecisionSchema,
+  reason: z.string().max(2000).optional(),
+});
+export type BulkApprovalInput = z.infer<typeof BulkApprovalInputSchema>;
+
 export const AuditRecordSchema = z.object({
   id: z.string(),
   tenantId: z.string(),

@@ -218,6 +218,7 @@ A genuinely usable, governed command center:
 - **Action follow-through** — after approval, **assign an owner + due date, comment, and mark complete** — turning a recommendation into tracked work.
 - **Activity feed** — a topbar notification bell showing recent decisions/events.
 - **Two-person approval (dual control)** — high-risk T3 actions (financial/legal/access) require **two distinct approvers**; a user can't approve twice.
+- **Bulk triage** — select multiple pending actions and approve/decline them together; each item still flows through RBAC, reason rules, dual control, and its own audit record.
 - **Outcomes view** — approvals, completions, declines, blocked attempts, and audit integrity at a glance.
 - **Role-based landing** — managers land on My Work, auditors on the Audit Trail, others on the Command Center.
 - **Status page** — integration health, audit-chain integrity, and system health at a glance.
@@ -227,9 +228,9 @@ A genuinely usable, governed command center:
 - **Workflows, Integrations (mock providers), Knowledge (search), Reports (export), Settings, Showcase (industry switcher).**
 - **App shell** — sidebar navigation, command palette (⌘K, searches nav/agents/insights/actions/docs), dark mode, responsive/mobile, toasts, empty/loading/error states.
 - **Durable data** — best-effort file persistence so decisions/comments/audit survive restarts.
-- **Security** — auth + **sliding session** (idle timeout + absolute cap), middleware + **server-side page-level RBAC**, **CSRF double-submit token + same-origin**, CSP + hardened headers (COOP/CORP), `no-store` on authed APIs, rate-limit headers, **tamper-evident audit**, fail-closed session secret, structured logging, health endpoint.
+- **Security** — auth + **sliding session** (idle timeout + absolute cap) with **client idle auto-logout**, middleware + **server-side page-level RBAC**, **CSRF double-submit token + same-origin**, **CSP nonce** (no inline scripts) + hardened headers (COOP/CORP), `no-store` on authed APIs, rate-limit headers, **tamper-evident audit with integrity-stamped exports**, fail-closed session secret, structured logging, health endpoint, `/.well-known/security.txt`.
 
-See the improvement analyses [`v1`](docs/improvements.md), [`v2`](docs/improvements-v2.md), [`v3`](docs/improvements-v3.md), [`v4`](docs/improvements-v4.md), and [`v5`](docs/improvements-v5.md) for the full user/client/security reasoning and roadmap (bulk triage, SSO/MFA, scheduled digests).
+See the improvement analyses [`v1`](docs/improvements.md), [`v2`](docs/improvements-v2.md), [`v3`](docs/improvements-v3.md), [`v4`](docs/improvements-v4.md), [`v5`](docs/improvements-v5.md), and [`v6`](docs/improvements-v6.md) for the full user/client/security reasoning and roadmap (bulk assign, SSO/MFA, scheduled digests).
 
 ---
 
