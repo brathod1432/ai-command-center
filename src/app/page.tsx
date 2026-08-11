@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AGENTS } from "@/lib/agents/registry";
 
+// Render dynamically so the per-request CSP nonce (middleware) applies to scripts.
+export const dynamic = "force-dynamic";
+
 const FEATURES = [
   {
     icon: Activity,

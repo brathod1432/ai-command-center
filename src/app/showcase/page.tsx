@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { IndustrySwitcher } from "@/components/patterns/industry-switcher";
 
+// Render dynamically so the per-request CSP nonce (middleware) applies to scripts.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Showcase",
   description: "See how Helm adapts across industries — technology, consulting, MSP, healthcare, insurance, finance, logistics, manufacturing, and enterprise.",

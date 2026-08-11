@@ -6,6 +6,7 @@ import { KpiCard } from "@/components/patterns/kpi-card";
 import { InsightsPanel } from "@/components/patterns/insights-panel";
 import { ActionQueue } from "@/components/patterns/action-queue";
 import { PageHeader } from "@/components/patterns/page-header";
+import { OnboardingChecklist } from "@/components/patterns/onboarding-checklist";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { getSession } from "@/lib/auth/current-user";
 import { store } from "@/lib/data/store";
@@ -41,6 +42,8 @@ export default async function DashboardPage() {
         title="Executive Command Center"
         description={`Welcome back, ${session?.name ?? "there"}. Here is what needs your attention today.`}
       />
+
+      <OnboardingChecklist />
 
       <section aria-labelledby="health-heading">
         <Card>

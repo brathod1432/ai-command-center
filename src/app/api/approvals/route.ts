@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ApprovalInputSchema } from "@/lib/types";
 import { getSession } from "@/lib/auth/current-user";
-import { requirePermission } from "@/lib/auth/authorize";
+import { AuthzError, requirePermission } from "@/lib/auth/authorize";
 import { ApprovalError } from "@/lib/governance";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { assertCsrf, assertSameOrigin, clientId, correlationId, jsonSecure, rateHeaders, toErrorResponse } from "@/lib/security/request";
@@ -37,7 +37,16 @@ export async function POST(req: NextRequest) {
     }
 
     const permission = parsed.data.decision === "approved" ? "action:approve" : "action:decline";
-    const session = requirePermission(await getSession(), permission);
+    const current = await getSession();
+    let session;
+    try {
+      session = requirePermission(current, permission);
+    } catch (e) {
+      if (e instanceof AuthzError && e.status === 403 && current) {
+        store.recordDenied({ tenantId: current.tenantId, actorId: current.userId, actorRole: current.role, permission });
+      }
+      throw e;
+    }
 
     try {
       const { action, audit } = store.applyDecision({

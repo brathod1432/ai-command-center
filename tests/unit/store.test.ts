@@ -83,6 +83,15 @@ describe("governance store", () => {
     expect(store.listComments(TENANT, "act_sprint_escalation").length).toBeGreaterThan(0);
   });
 
+  it("records a denied authorization attempt and keeps the chain valid", () => {
+    const before = store.listAudit(TENANT).length;
+    store.recordDenied({ tenantId: TENANT, actorId: "u_viewer", actorRole: "viewer", permission: "action:approve" });
+    const after = store.listAudit(TENANT);
+    expect(after.length).toBe(before + 1);
+    expect(after.some((r) => r.category === "permission" && r.action.startsWith("denied:"))).toBe(true);
+    expect(store.verifyAudit(TENANT).ok).toBe(true);
+  });
+
   it("maintains a verifiable tamper-evident audit chain", () => {
     // Generate several audit-writing operations, then verify the chain.
     store.assignAction({ tenantId: TENANT, actionId: "act_ar_collections", owner: "Finance", actorId: "u", actorRole: "owner" });

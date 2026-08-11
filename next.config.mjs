@@ -1,22 +1,9 @@
 /** @type {import('next').NextConfig} */
 
 // Security headers applied to all routes. See docs/security-model.md §6.
+// NOTE: Content-Security-Policy is set in middleware with a per-request nonce
+// (see src/middleware.ts) so it is intentionally omitted here.
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "img-src 'self' data: blob:",
-      "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline'" + (process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""),
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "object-src 'none'",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join("; "),
-  },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },

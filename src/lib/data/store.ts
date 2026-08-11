@@ -114,6 +114,22 @@ export const store = {
     return r;
   },
 
+  /** Record a denied authorization attempt (security monitoring). */
+  recordDenied(params: { tenantId: string; actorId: string; actorRole: Role; permission: string }): void {
+    appendAudit(state, {
+      id: `aud_denied_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      tenantId: params.tenantId,
+      timestamp: new Date().toISOString(),
+      actorId: params.actorId,
+      actorRole: params.actorRole,
+      category: "permission",
+      action: `denied:${params.permission}`,
+      tier: "T0",
+      outcome: "info",
+    });
+    persist(state);
+  },
+
   listComments(tenantId: string, actionId: string): ActionComment[] {
     return state.comments
       .filter((c) => c.tenantId === tenantId && c.actionId === actionId)
